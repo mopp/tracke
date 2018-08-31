@@ -9,12 +9,12 @@ main() ->
     case calc1(999, 1) of
         {ok, _} ->
             ok;
-        {error, Reason} ->
-            case tracke:reason(Reason) of
+        {error, Reason0} ->
+            case tracke:reason(Reason0) of
                 too_large ->
-                    _ = io:format("~s", [tracke:format(Reason)]);
-                _ ->
-                    tracke:chain(Reason)
+                    _ = io:format("~s", [tracke:format(Reason0)]);
+                Reason ->
+                    {error, tracke:chain(Reason)}
             end
     end.
 
@@ -23,7 +23,7 @@ calc1(N, M) ->
         true ->
             {ok, M};
         false ->
-            tracke:error(too_large)
+            {error, tracke:new(too_large)}
     end.
 ```
 

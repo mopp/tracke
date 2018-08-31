@@ -6,13 +6,10 @@
          format/1,
          format/2]).
 
--export_type([error/0,
-              format_options/0]).
+-export_type([format_options/0]).
 
 % Only for internal use.
 -export([internal_chain/2]).
-
--type error() :: {error, tracke()} | {error, atom()}.
 
 -type format_options() :: [{indent, non_neg_integer()}].
 
@@ -66,9 +63,9 @@ format(Reason, _) ->
 %%====================================================================
 %% Internal functions
 %%====================================================================
--spec internal_chain(tracke() | term(), history()) -> error().
+-spec internal_chain(tracke() | term(), history()) -> tracke().
 internal_chain(#tracke{histories = Histories} = Tracke, NewHistory) ->
-    {error, Tracke#tracke{histories = [NewHistory | Histories]}};
+    Tracke#tracke{histories = [NewHistory | Histories]};
 internal_chain(Reason, NewHistory) ->
-    {error, #tracke{reason = Reason,
-                    histories = [NewHistory]}}.
+    #tracke{reason = Reason,
+            histories = [NewHistory]}.

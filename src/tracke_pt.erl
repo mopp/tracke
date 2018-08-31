@@ -63,8 +63,8 @@ walk_clauses(Clauses, History) ->
 
 -spec walk_exprs([expr()], history_parts()) -> [expr()].
 walk_exprs(Exprs, History) ->
-    lists:map(fun({call, Line, {remote, _, {atom, _, tracke}, {atom, _, error}}, ArgExpr}) ->
-                      handle_tracke_error(ArgExpr, History#{line => Line});
+    lists:map(fun({call, Line, {remote, _, {atom, _, tracke}, {atom, _, new}}, ArgExpr}) ->
+                      handle_tracke_new(ArgExpr, History#{line => Line});
                  ({call, Line, {remote, _, {atom, _, tracke}, {atom, _, chain}}, ArgExpr}) ->
                       handle_tracke_chain(ArgExpr, History#{line => Line});
                  (Expr) when is_list(Expr) ->
@@ -76,13 +76,12 @@ walk_exprs(Exprs, History) ->
               end,
               Exprs).
 
--spec handle_tracke_error([form()], history_parts()) -> {tuple, line(), [expr()]}.
-handle_tracke_error([ReasonExpr, AuxExpr], History) ->
-    handle_tracke_error([ReasonExpr], History#{aux => AuxExpr});
-handle_tracke_error([ReasonExpr], #{line := Line} = History) ->
+-spec handle_tracke_new([form()], history_parts()) -> record().
+handle_tracke_new([ReasonExpr, AuxExpr], History) ->
+    handle_tracke_new([ReasonExpr], History#{aux => AuxExpr});
+handle_tracke_new([ReasonExpr], #{line := Line} = History) ->
     HistoryExpr = make_history_record(History),
-    TrackeRep = make_tracke_record(Line, ReasonExpr, {cons, Line, HistoryExpr, {nil, Line}}),
-    make_error_tuple(Line, TrackeRep).
+    make_tracke_record(Line, ReasonExpr, {cons, Line, HistoryExpr, {nil, Line}}).
 
 -spec handle_tracke_chain([form()], history_parts()) -> {call, line(), {remote, line(), {atom, line(), tracke}, {atom, line(), internal_chain}}, [form()]}.
 handle_tracke_chain([ReasonExpr, AuxExpr], History) ->
@@ -90,10 +89,6 @@ handle_tracke_chain([ReasonExpr, AuxExpr], History) ->
 handle_tracke_chain([ReasonExpr], #{line := Line} = History) ->
     HistoryExpr = make_history_record(History),
     {call, Line, {remote, Line, {atom, Line, tracke}, {atom, Line, internal_chain}}, [ReasonExpr, HistoryExpr]}.
-
--spec make_error_tuple(line(), expr()) -> {tuple, line(), [expr()]}.
-make_error_tuple(Line, Expr) ->
-    {tuple, Line, [{atom, Line, error}, Expr]}.
 
 -spec make_tracke_record(line(), expr(), expr()) -> record().
 make_tracke_record(Line, ReasonExpr, HistoryExpr) ->
