@@ -1,11 +1,21 @@
 ## tracke
 Trackable error library.
 
+### API
+- `-spec tracke:new(Reason :: term()) -> tracke()`
+    * Make `tracke` object.
+    * The argument accepts `Reason`.
+- `-spec tracke:reason(tracke() | term()) -> tracke()`
+    * Extract error reason from `tracke`.
+    * Return it without doing anythings if not `tracke` object is given.
+- `-spec tracke:format(tracke()) -> binary()`
+    * Build human readable error reason and its history.
+
 ### Example
 ```erlang
 -compile([{parse_transform, tracke_pt}]).
 
-main() -> 
+main() ->
     case calc1(999, 1) of
         {ok, _} ->
             ok;
