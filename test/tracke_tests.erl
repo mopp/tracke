@@ -86,6 +86,10 @@ usage_test_() ->
                                ?assert(false)
                        end
                end
+       end},
+      {"`_' binding convert atom",
+       fun() ->
+               {error, #tracke{histories = [#history{args = [for_test, '_']}]}} = underscode_func(for_test, aaa)
        end}]}.
 
 func1({Reason, Msg}) ->
@@ -107,3 +111,8 @@ calc1(N, M) ->
         false ->
             {error, tracke:new(too_large)}
     end.
+
+underscode_func(_, dummy) ->
+    ok;
+underscode_func(X, _) ->
+    {error, tracke:new({should_be_change, X})}.
