@@ -2,31 +2,30 @@
 
 -include("tracke.hrl").
 
--export([reason/1,
-         format/1,
+%%====================================================================
+%% API
+%%====================================================================
+-export([format/1,
          format/2]).
 
--export_type([format_options/0]).
+-export_type([tracke/1,
+              format_options/0]).
 
-% Only for internal use.
--export([internal_chain/2]).
+%%====================================================================
+%% Types
+%%====================================================================
+-type tracke(Reason) :: #tracke{reason :: Reason}.
 
 -type format_options() :: [{indent, non_neg_integer()}].
 
 %%====================================================================
 %% API functions
 %%====================================================================
--spec reason(tracke() | term()) -> term().
-reason(#tracke{reason = Reason}) ->
-    Reason;
-reason(X) ->
-    X.
-
--spec format(tracke() | term()) -> io_lib:chars().
+-spec format(tracke(term()) | term()) -> io_lib:chars().
 format(Tracke) ->
     format(Tracke, [{indent, 4}]).
 
--spec format(tracke() | term(), format_options()) -> io_lib:chars().
+-spec format(tracke(term()) | term(), format_options()) -> io_lib:chars().
 format(#tracke{reason = Reason,
                histories = Histories}, [{indent, N}]) ->
     Indent = lists:flatten(lists:duplicate(N, " ")),
@@ -59,13 +58,3 @@ format(#tracke{reason = Reason,
                    lists:flatten(Hists0)]);
 format(Reason, _) ->
     io_lib:format("~p", [Reason]).
-
-%%====================================================================
-%% Internal functions
-%%====================================================================
--spec internal_chain(tracke() | term(), history()) -> tracke().
-internal_chain(#tracke{histories = Histories} = Tracke, NewHistory) ->
-    Tracke#tracke{histories = [NewHistory | Histories]};
-internal_chain(Reason, NewHistory) ->
-    #tracke{reason = Reason,
-            histories = [NewHistory]}.

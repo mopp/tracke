@@ -5,114 +5,60 @@
 -include_lib("eunit/include/eunit.hrl").
 -include("tracke.hrl").
 
+-type tracke(Reason) :: tracke:tracke(Reason).
+
+-spec underscode_func(Reason, term()) -> tracke(Reason).
+underscode_func(Reason, _) ->
+    tracke:new(Reason).
+
 api_test_() ->
     {inparallel,
-     [{"error/1 succeeds",
-       ?_assertMatch(#tracke{reason = for_test,
-                             histories = [#history{module = ?MODULE,
-                                                   function = api_test_,
-                                                   args = [],
-                                                   aux = undefined}]},
+     [{"tracke:new/1 succeeds",
+       ?_assertEqual(tracke_new(for_test, {?MODULE, api_test_, [], ?LINE + 1, undefined}),
                      tracke:new(for_test))},
-      {"error/2 succeeds",
-       ?_assertMatch(#tracke{reason = for_test,
-                             histories = [#history{module = ?MODULE,
-                                                   function = api_test_,
-                                                   args = [],
-                                                   aux = <<"write the reason why error caused here">>}]},
-                     tracke:new(for_test, <<"write the reason why error caused here">>))},
-      {"reacon/1 succeeds",
+      {"tracke:new/2 succeeds, aux is binary",
+       ?_assertEqual(tracke_new(for_test, {?MODULE, api_test_, [], ?LINE + 1, <<"Put here what the caller has to do">>}),
+                     tracke:new(for_test, <<"Put here what the caller has to do">>))},
+      {"tracke:new/2 succeeds, aux is anonymous function",
+       ?_assertEqual(tracke_new(for_test, {?MODULE, api_test_, [], ?LINE + 1, hint}),
+                     (fun(X) -> tracke:new(for_test, X) end)(hint))},
+      {"tracke:chain/1 succeeds",
        fun() ->
                Tracke = tracke:new(for_test),
-               ?assertEqual(for_test, tracke:reason(Tracke))
-       end},
-      {"chain/1 succeeds",
-       fun() ->
-               Tracke = tracke:new(for_test),
-               ?assertMatch(#tracke{reason = for_test,
-                                    histories = [#history{module = ?MODULE,
-                                                          function = api_test_,
-                                                          args = [],
-                                                          aux = undefined},
-                                                 #history{module = ?MODULE,
-                                                          function = api_test_,
-                                                          args = [],
-                                                          aux = undefined}]},
+               ?assertEqual(tracke_chain(Tracke, {?MODULE, api_test_, [], ?LINE + 1, undefined}),
                             tracke:chain(Tracke))
        end},
-      {"chain/2 succeeds",
+      {"tracke:chain/2 succeeds, aux is atom",
        fun() ->
                Tracke = tracke:new(for_test),
-               ?assertMatch(#tracke{reason = for_test,
-                                    histories = [#history{module = ?MODULE,
-                                                          function = api_test_,
-                                                          args = [],
-                                                          aux = <<"sample message">>},
-                                                 #history{module = ?MODULE,
-                                                          function = api_test_,
-                                                          args = [],
-                                                          aux = undefined}]},
-                            tracke:chain(Tracke, <<"sample message">>))
-       end}
-     ]}.
-
-usage_test_() ->
-    {inparallel,
-     [{"Sample scenario 1",
-       fun() ->
-               case func2({sample_error_reason, <<"sample message">>}) of
-                   ok ->
-                       ?assert(false);
-                   {error, Reason} ->
-                       case tracke:reason(Reason) of
-                           sample_error_reason ->
-                               _ = io:format("~s", [tracke:format(Reason)]),
-                               ?assert(true);
-                           another_reason ->
-                               ?assert(false)
-                       end
-               end
+               ?assertEqual(tracke_chain(Tracke, {?MODULE, api_test_, [], ?LINE + 1, hint}),
+                            tracke:chain(Tracke, hint))
        end},
-      {"Sample scenario 2",
+      {"tracke:reason/1 succeeds",
        fun() ->
-               case calc1(999, 1) of
-                   {ok, _} ->
-                       ?assert(false);
-                   {error, Reason} ->
-                       case tracke:reason(Reason) of
-                           too_large ->
-                               _ = io:format("~s", [tracke:format(Reason)]);
-                           _ ->
-                               ?assert(false)
-                       end
-               end
+               Tracke = tracke:new(for_test),
+               ?_assertEqual(for_test,
+                             tracke:reason(Tracke))
        end},
-      {"`_' binding convert atom",
-       fun() ->
-               {error, #tracke{histories = [#history{args = [for_test, '_']}]}} = underscode_func(for_test, aaa)
-       end}]}.
+      {"`_' variable binding is converted to atom '_`",
+       ?_assertEqual(tracke_new(for_test, {?MODULE, underscode_func, [for_test, '_'], 12, undefined}),
+                     underscode_func(for_test, dummy))}]}.
 
-func1({Reason, Msg}) ->
-    {error, tracke:new(Reason, <<<<"func1: ">>/binary, Msg/binary>>)}.
+-type history_components() :: {?MODULE, atom(), [term()], non_neg_integer(), term()}.
 
--spec func2({atom(), binary()}) -> binary().
-func2({Reason, Msg}) ->
-    case func1({Reason, Msg}) of
-        ok ->
-            ok;
-        {error, Tracke} ->
-            {error, tracke:chain(Tracke, {<<<<"func2: ">>/binary, Msg/binary>>, ahhh})}
-    end.
+-spec tracke_new(Reason, history_components()) -> tracke(Reason).
+tracke_new(Reason, HistoryComponents) ->
+    #tracke{reason = Reason,
+            histories = [make_history(HistoryComponents)]}.
 
-calc1(N, M) ->
-    case N < M of
-        true ->
-            {ok, M};
-        false ->
-            {error, tracke:new(too_large)}
-    end.
+-spec tracke_chain(tracke(Reason), history_components()) -> tracke(Reason).
+tracke_chain(Tracke, HistoryComponents) ->
+    Tracke#tracke{histories = [make_history(HistoryComponents) | Tracke#tracke.histories]}.
 
-underscode_func(_, dummy) ->
-    ok;
-underscode_func(X, _) ->
-    {error, tracke:new({should_be_change, X})}.
+-spec make_history(history_components()) -> #history{}.
+make_history({Module, Function, Args, Line, Aux}) ->
+    #history{module = Module,
+             function = Function,
+             args = Args,
+             line = Line,
+             aux = Aux}.

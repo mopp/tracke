@@ -2,7 +2,6 @@
 
 -export([parse_transform/2]).
 
-
 -type form() :: {attribute, line(), module, module()} |
                 {function, line(), atom(), non_neg_integer(), [clause()]} |
                 erl_parse:abstract_form().
@@ -10,18 +9,18 @@
 -type clause() :: {clause, line(), Args :: [term()], Guards :: [term()], Body :: [expr()]} |
                   erl_parse:abstract_clause().
 
--type expr() :: record() |
+-type expr() :: record(atom()) |
                 record_field() |
                 erl_parse:abstract_expr() |
                 term().
 
--type record() :: {record, line(), atom(), [record_field()]}.
+-type record(Name) :: {record, line(), Name, [record_field()]}.
 
 -type record_field() :: {record_field, line(), {atom, line(), atom()}, expr()}.
 
 -type line() :: non_neg_integer().
 
--type history_parts() :: map().
+-type history_components() :: map().
 
 %%====================================================================
 %% API functions
@@ -43,7 +42,7 @@ module([{attribute, _, module, Module} | _]) ->
 module([_ | Rest]) ->
     module(Rest).
 
--spec walk_forms([form()], history_parts()) -> [form()].
+-spec walk_forms([form()], history_components()) -> [form()].
 walk_forms(Forms, History) ->
     lists:map(fun({function, Line, Name, Arity, Clauses}) ->
                       {function, Line, Name, Arity, walk_clauses(Clauses, History#{function => Name})};
@@ -52,7 +51,7 @@ walk_forms(Forms, History) ->
               end,
               Forms).
 
--spec walk_clauses([clause()], history_parts()) -> [clause()].
+-spec walk_clauses([clause()], history_components()) -> [clause()].
 walk_clauses(Clauses, History) ->
     lists:map(fun({clause, Line, Args, Guards, Body}) ->
                       {clause, Line, Args, Guards, walk_exprs(Body, History#{args => args_to_cons(Line, Args)})};
@@ -61,12 +60,14 @@ walk_clauses(Clauses, History) ->
               end,
               Clauses).
 
--spec walk_exprs([expr()], history_parts()) -> [expr()].
+-spec walk_exprs([expr()], history_components()) -> [expr()].
 walk_exprs(Exprs, History) ->
     lists:map(fun({call, Line, {remote, _, {atom, _, tracke}, {atom, _, new}}, ArgExpr}) ->
                       handle_tracke_new(ArgExpr, History#{line => Line});
                  ({call, Line, {remote, _, {atom, _, tracke}, {atom, _, chain}}, ArgExpr}) ->
                       handle_tracke_chain(ArgExpr, History#{line => Line});
+                 ({call, Line, {remote, _, {atom, _, tracke}, {atom, _, reason}}, ArgExpr}) ->
+                      handle_tracke_reason(ArgExpr, History#{line => Line});
                  (Expr) when is_list(Expr) ->
                       walk_exprs(Expr, History);
                  (Expr) when is_tuple(Expr) ->
@@ -76,26 +77,43 @@ walk_exprs(Exprs, History) ->
               end,
               Exprs).
 
--spec handle_tracke_new([form()], history_parts()) -> record().
+-spec handle_tracke_new([expr()], history_components()) -> record(tracke).
 handle_tracke_new([ReasonExpr, AuxExpr], History) ->
     handle_tracke_new([ReasonExpr], History#{aux => AuxExpr});
 handle_tracke_new([ReasonExpr], #{line := Line} = History) ->
+    % This corresponds to the following expression.
+    % #tracke{reason = Reason
+    %         histories = [NewHistory]}
     HistoryExpr = make_history_record(History),
     make_tracke_record(Line, ReasonExpr, {cons, Line, HistoryExpr, {nil, Line}}).
 
--spec handle_tracke_chain([form()], history_parts()) -> {call, line(), {remote, line(), {atom, line(), tracke}, {atom, line(), internal_chain}}, [form()]}.
+-spec handle_tracke_chain([expr()], history_components()) -> record(tracke).
 handle_tracke_chain([ReasonExpr, AuxExpr], History) ->
     handle_tracke_chain([ReasonExpr], History#{aux => AuxExpr});
-handle_tracke_chain([ReasonExpr], #{line := Line} = History) ->
+handle_tracke_chain([{var, _, _} = TrackeVarExpr], #{line := Line} = History) ->
+    % This corresponds to the following expression.
+    % #tracke{reason = Reason#tracke.reason,
+    %         histories = [NewHistory | Reason#tracke.histories]}
     HistoryExpr = make_history_record(History),
-    {call, Line, {remote, Line, {atom, Line, tracke}, {atom, Line, internal_chain}}, [ReasonExpr, HistoryExpr]}.
+    {record, Line, tracke, [make_record_field(Line, reason, {record_field, Line, TrackeVarExpr, tracke, {atom, Line, reason}}),
+                            make_record_field(Line, histories, {cons, Line, HistoryExpr, {record_field, Line, TrackeVarExpr, tracke, {atom, Line, histories}}})]};
+handle_tracke_chain(_, _) ->
+    error('You can ONLY use a variable as the argument of tracke:chain').
 
--spec make_tracke_record(line(), expr(), expr()) -> record().
+-spec handle_tracke_reason([expr()], history_components()) -> expr().
+handle_tracke_reason([{var, _, _} = TrackeVarExpr], #{line := Line}) ->
+    % This corresponds to the following expression.
+    % Reason#tracke.reason
+    {record_field, Line, TrackeVarExpr, tracke, {atom, Line, reason}};
+handle_tracke_reason(_, _) ->
+    error('You can ONLY use a variable as the argument of tracke:reason').
+
+-spec make_tracke_record(line(), expr(), expr()) -> record(tracke).
 make_tracke_record(Line, ReasonExpr, HistoryExpr) ->
     {record, Line, tracke, [make_record_field(Line, reason, ReasonExpr),
                             make_record_field(Line, histories, HistoryExpr)]}.
 
--spec make_history_record(history_parts()) -> record().
+-spec make_history_record(history_components()) -> record(history).
 make_history_record(#{module := Module,
                       function := Function,
                       args := Args,

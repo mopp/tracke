@@ -1,65 +1,39 @@
 ## tracke
 Trackable error library.
 
+### features
+- Make your error trackable.
+
 ### API
-- `-spec tracke:new(Reason :: term()) -> tracke()`
+- `-spec tracke:new(Reason) -> tracke:tracke(Reason)`
     * Make `tracke` object.
-    * The argument accepts `Reason`.
-- `-spec tracke:new(Reason :: term(), Aux :: term()) -> tracke()`
+    * Define your error as the `Reason`.
+- `-spec tracke:new(Reason, Aux :: term()) -> tracke:tracke(Reason)`
     * This function works same as `tracke:new/1`.
-    * `Aux` is embedded to history.
-- `-spec tracke:chain(Reason :: term()) -> tracke()`
-    * Append history to `tracke()` and keep the reason.
-    * This function works same as `tracke:new/1` if `Reason` is NOT `tracke()`
-- `-spec tracke:chain(Reason :: term(), Aux :: term()) -> tracke()`
+    * The `Aux` is embedded to history.
+- `-spec tracke:chain(tracke(Reason)) -> tracke(Reason)`
+    * Append history to `tracke(Reason)` and keep the reason.
+    * This function works same as `tracke:new/1` if `Reason` is NOT `tracke(Reason)`
+- `-spec tracke:chain(tracke(Reason), Aux :: term()) -> tracke(Reason)`
     * This function works same as `tracke:chain/1`.
-    * `Aux` is embedded to history.
-- `-spec tracke:reason(tracke() | term()) -> tracke()`
+    * The `Aux` is embedded to history.
+- `-spec tracke:reason(tracke(Reason)) -> Reason`
     * Extract error reason from `tracke`.
     * Return it without doing anythings if not `tracke` object is given.
-- `-spec tracke:format(tracke()) -> binary()`
+- `-spec tracke:format(tracke(Reason)) -> io_lib:chars()`
     * Build human readable error reason and its history.
 
+### Constrains
+- You can ONLY use a variable as the arugment of `tracke:chain/1`, `tracke:chain/1` and `tracke:reason/1`.
+    * This measn a forms of `tracke:chain(Reason)` is acceptable.
+    * `tracke:chain(tracke:new(not_work))` is NOT supported because this library uses `parse_transform/2`.
+
 ### Example
+See [src/tracke_example.erl](src/tracke_example.erl) for details.
+
 ```erlang
--compile([{parse_transform, tracke_pt}]).
-
-main() ->
-    case calc1(999, 1) of
-        {ok, _} ->
-            ok;
-        {error, Reason0} ->
-            case tracke:reason(Reason0) of
-                too_large ->
-                    _ = io:format("~s", [tracke:format(Reason0)]);
-                Reason ->
-                    {error, tracke:chain(Reason)}
-            end
-    end.
-
-calc1(N, M) ->
-    case N < M of
-        true ->
-            {ok, M};
-        false ->
-            {error, tracke:new(too_large)}
-    end.
 ```
 
-`tracke:format/1` example:
+The result is the following:
 ```console
-Reason: sample_error_reason
-History:
-    tracke_tests:func1/1 at L92
-        Args: [{sample_error_reason,<<"sample message">>}]
-        Aux: <<"func1: sample message">>
-    tracke_tests:func2/1 at L100
-        Args: [{sample_error_reason,<<"sample message">>}]
-        Aux: {<<"func2: sample message">>,ahhh}
-```
-
-
-## Build
-```console
-% rebar3 compile
 ```
