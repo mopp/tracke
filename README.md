@@ -5,9 +5,15 @@ Trackable error library.
 - `-spec tracke:new(Reason :: term()) -> tracke()`
     * Make `tracke` object.
     * The argument accepts `Reason`.
+- `-spec tracke:new(Reason :: term(), Aux :: term()) -> tracke()`
+    * This function works same as `tracke:new/1`.
+    * `Aux` is embedded to history.
 - `-spec tracke:chain(Reason :: term()) -> tracke()`
     * Append history to `tracke()` and keep the reason.
     * This function works same as `tracke:new/1` if `Reason` is NOT `tracke()`
+- `-spec tracke:chain(Reason :: term(), Aux :: term()) -> tracke()`
+    * This function works same as `tracke:chain/1`.
+    * `Aux` is embedded to history.
 - `-spec tracke:reason(tracke() | term()) -> tracke()`
     * Extract error reason from `tracke`.
     * Return it without doing anythings if not `tracke` object is given.
