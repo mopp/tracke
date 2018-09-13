@@ -40,6 +40,8 @@ api_test_() ->
                ?_assertEqual(for_test,
                              tracke:reason(Tracke))
        end},
+      {"tracke:format/1",
+       ?_assert(is_binary(tracke:format(tracke:new(for_test))))},
       {"`_' variable binding is converted to atom '_`",
        ?_assertEqual(tracke_new(for_test, {?MODULE, underscode_func, [for_test, '_'], 12, undefined}),
                      underscode_func(for_test, dummy))}]}.

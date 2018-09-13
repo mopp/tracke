@@ -21,40 +21,47 @@
 %%====================================================================
 %% API functions
 %%====================================================================
--spec format(tracke(term()) | term()) -> io_lib:chars().
+-spec format(tracke(term()) | term()) -> binary().
 format(Tracke) ->
     format(Tracke, [{indent, 4}]).
 
--spec format(tracke(term()) | term(), format_options()) -> io_lib:chars().
-format(#tracke{reason = Reason,
-               histories = Histories}, [{indent, N}]) ->
-    Indent = lists:flatten(lists:duplicate(N, " ")),
-    Hists0  = lists:foldl(fun(#history{module = Module,
-                                       function = Function,
-                                       args = Args,
-                                       line = Line,
-                                       aux = Aux}, Acc) ->
-                                  [io_lib:format("~s~p:~p/~p at L~p~n"
-                                                 "~s~sArgs: ~p~n"
-                                                 "~s~sAux: ~p~n",
-                                                 [Indent,
-                                                  Module,
-                                                  Function,
-                                                  length(Args),
-                                                  Line,
-                                                  Indent,
-                                                  Indent,
-                                                  Args,
-                                                  Indent,
-                                                  Indent,
-                                                  Aux]) | Acc]
-                          end,
-                          [],
-                          Histories),
-    io_lib:format("Reason: ~p~n"
-                  "History:~n"
-                  "~s",
-                  [Reason,
-                   lists:flatten(Hists0)]);
+-spec format(tracke(term()) | term(), format_options()) -> binary().
+format(#tracke{reason = Reason0,
+               histories = Histories0}, [{indent, N}]) ->
+    Indent = binary:copy(<<" ">>, N),
+    Histories = lists:foldl(fun(#history{module = Module,
+                                         function = Function,
+                                         args = Args,
+                                         line = Line,
+                                         aux = Aux}, Acc) ->
+                                    Formated = io_lib:format("~s~p:~p/~p at L~p~n"
+                                                             "~s~sArgs: ~p~n"
+                                                             "~s~sAux: ~p~n",
+                                                             [Indent,
+                                                              Module,
+                                                              Function,
+                                                              length(Args),
+                                                              Line,
+                                                              Indent,
+                                                              Indent,
+                                                              Args,
+                                                              Indent,
+                                                              Indent,
+                                                              Aux]),
+                                    [list_to_binary(Formated) | Acc]
+                            end,
+                            [],
+                            Histories0),
+    Reason = list_to_binary(io_lib:format("~p", [Reason0])),
+    join([<<"Reason: ">>, Reason, <<"\nHistory:\n">> | Histories]);
 format(Reason, _) ->
-    io_lib:format("~p", [Reason]).
+    list_to_binary(io_lib:format("~p", [Reason])).
+
+%%====================================================================
+%% Internal functions
+%%====================================================================
+-spec join([binary()]) -> binary().
+join([X | [Y | Rest]]) ->
+    join([<<X/binary, Y/binary>> | Rest]);
+join([X]) ->
+    X.

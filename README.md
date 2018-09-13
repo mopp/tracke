@@ -20,7 +20,7 @@ Trackable error library.
 - `-spec tracke:reason(tracke(Reason)) -> Reason`
     * Extract error reason from `tracke`.
     * Return it without doing anythings if not `tracke` object is given.
-- `-spec tracke:format(tracke(Reason)) -> io_lib:chars()`
+- `-spec tracke:format(tracke(Reason)) -> binary()`
     * Build human readable error reason and its history.
 
 ### Constrains
