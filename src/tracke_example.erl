@@ -14,7 +14,7 @@
 %% You can see the results on shell using the following codes:
 %%   tracke_example:normal_usage(0).
 %%   tracke_example:normal_usage(-100).
-%%   tracke_example:normal_usage(11).
+%%   tracke_example:normal_usage(127).
 %%   tracke_example:normal_usage(15).
 -spec normal_usage(integer()) -> ok.
 normal_usage(X) ->
