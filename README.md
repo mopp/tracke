@@ -20,6 +20,9 @@ Trackable error library.
 - `-spec tracke:chain(tracke(Reason), Aux :: term()) -> tracke(Reason)`
     * This function works same as `tracke:chain/1`.
     * The `Aux` is embedded to history.
+- `-spec tracke:extend(NewReason, tracke(Reason :: term())) -> tracke(NewReason)`
+    * Set new reason and keep the histories.
+    * The old reason is stored into `Aux` field.
 - `-spec tracke:reason(tracke(Reason)) -> Reason`
     * Extract error reason from `tracke`.
     * Return it without doing anythings if not `tracke` object is given.

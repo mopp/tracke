@@ -34,6 +34,12 @@ api_test_() ->
                ?assertEqual(tracke_chain(Tracke, {?MODULE, api_test_, [], ?LINE + 1, hint}),
                             tracke:chain(Tracke, hint))
        end},
+      {"tracke:extend/2 succeeds",
+       fun() ->
+               Tracke = tracke:new(for_test),
+               ?assertEqual(tracke_extend(new_reason, Tracke, {?MODULE, api_test_, [], ?LINE + 1, undefined}),
+                            tracke:extend(new_reason, Tracke))
+       end},
       {"tracke:reason/1 succeeds",
        fun() ->
                Tracke = tracke:new(for_test),
@@ -56,6 +62,14 @@ tracke_new(Reason, HistoryComponents) ->
 -spec tracke_chain(tracke(Reason), history_components()) -> tracke(Reason).
 tracke_chain(Tracke, HistoryComponents) ->
     Tracke#tracke{histories = [make_history(HistoryComponents) | Tracke#tracke.histories]}.
+
+-spec tracke_extend(tracke(NewReason), tracke(term()), history_components()) -> tracke(NewReason).
+tracke_extend(NewReason,
+              #tracke{reason = Reason,
+                      histories = Historyes},
+              {Module, Function, Args, Line, _}) ->
+    #tracke{reason = NewReason,
+            histories = [make_history({Module, Function, Args, Line, Reason}) | Historyes]}.
 
 -spec make_history(history_components()) -> #history{}.
 make_history({Module, Function, Args, Line, Aux}) ->

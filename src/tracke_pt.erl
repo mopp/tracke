@@ -66,6 +66,8 @@ walk_exprs(Exprs, History) ->
                       handle_tracke_new(ArgExpr, History#{line => Line});
                  ({call, Line, {remote, _, {atom, _, tracke}, {atom, _, chain}}, ArgExpr}) ->
                       handle_tracke_chain(ArgExpr, History#{line => Line});
+                 ({call, Line, {remote, _, {atom, _, tracke}, {atom, _, extend}}, ArgExpr}) ->
+                      handle_tracke_extend(ArgExpr, History#{line => Line});
                  ({call, Line, {remote, _, {atom, _, tracke}, {atom, _, reason}}, ArgExpr}) ->
                       handle_tracke_reason(ArgExpr, History#{line => Line});
                  (Expr) when is_list(Expr) ->
@@ -94,11 +96,26 @@ handle_tracke_chain([{var, _, _} = TrackeVarExpr], #{line := Line} = History) ->
     % This corresponds to the following expression.
     % #tracke{reason = Reason#tracke.reason,
     %         histories = [NewHistory | Reason#tracke.histories]}
+    ReasonExpr = {record_field, Line, TrackeVarExpr, tracke, {atom, Line, reason}},
+    HistoriesExpr = {record_field, Line, TrackeVarExpr, tracke, {atom, Line, histories}},
     HistoryExpr = make_history_record(History),
-    {record, Line, tracke, [make_record_field(Line, reason, {record_field, Line, TrackeVarExpr, tracke, {atom, Line, reason}}),
-                            make_record_field(Line, histories, {cons, Line, HistoryExpr, {record_field, Line, TrackeVarExpr, tracke, {atom, Line, histories}}})]};
+    {record, Line, tracke, [make_record_field(Line, reason, ReasonExpr),
+                            make_record_field(Line, histories, {cons, Line, HistoryExpr, HistoriesExpr})]};
 handle_tracke_chain(_, _) ->
     error('You can ONLY use a variable as the argument of tracke:chain').
+
+-spec handle_tracke_extend([expr()], history_components()) -> record(tracke).
+handle_tracke_extend([NewReasonExpr, {var, _, _} = TrackeVarExpr], #{line := Line} = History) ->
+    % This corresponds to the following expression.
+    % #tracke{reason = NewReason,
+    %         histories = [NewHistoryWithOldReason | Reason#tracke.histories]}
+    OldReasonExpr = {record_field, Line, TrackeVarExpr, tracke, {atom, Line, reason}},
+    HistoriesExpr = {record_field, Line, TrackeVarExpr, tracke, {atom, Line, histories}},
+    HistoryExpr = make_history_record(History#{aux => OldReasonExpr}),
+    {record, Line, tracke, [make_record_field(Line, reason, NewReasonExpr),
+                            make_record_field(Line, histories, {cons, Line, HistoryExpr, HistoriesExpr})]};
+handle_tracke_extend(_, _) ->
+    error('You can ONLY use a variable as the argument of tracke:extend').
 
 -spec handle_tracke_reason([expr()], history_components()) -> expr().
 handle_tracke_reason([{var, _, _} = TrackeVarExpr], #{line := Line}) ->
