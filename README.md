@@ -31,6 +31,15 @@ Trackable error library.
     * This measn a forms of `tracke:chain(Reason)` is acceptable.
     * `tracke:chain(tracke:new(not_work))` is NOT supported because this library uses `parse_transform/2`.
 
+### Error hints
+Resolving some dialyzer errors relates to tracke is not easy because it uses `parse_transform/2`.  
+We show you the hints to solve them here.
+
+- `Matching of pattern {'tracke', _, _} tagged with a record name violates the declared type of XXX`
+    * You may give NOT `tracke(Reason)` to `tracke:chain/1`.
+    * Check your return types of specs.
+
+
 ### Example
 See [src/tracke_example.erl](src/tracke_example.erl) for details.
 
