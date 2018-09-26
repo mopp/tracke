@@ -54,7 +54,7 @@ walk_forms(Forms, History) ->
 -spec walk_clauses([clause()], history_components()) -> [clause()].
 walk_clauses(Clauses, History) ->
     lists:map(fun({clause, Line, Args, Guards, Body}) ->
-                      {clause, Line, Args, Guards, walk_exprs(Body, History#{args => args_to_cons(Line, Args)})};
+                      {clause, Line, Args, Guards, walk_exprs(Body, History#{args => length(Args)})};
                  (Clause) ->
                       Clause
               end,
@@ -145,21 +145,10 @@ make_history_record(#{module := Module,
 
     {record, Line, history, [make_record_field(Line, module, {atom, Line, Module}),
                              make_record_field(Line, function, {atom, Line, Function}),
-                             make_record_field(Line, args, Args),
+                             make_record_field(Line, args, {integer, Line, Args}),
                              make_record_field(Line, line, {integer, Line, Line}),
                              make_record_field(Line, aux, Aux)]}.
 
 -spec make_record_field(line(), atom(), expr()) -> record_field().
 make_record_field(Line, Name, Expr) ->
     {record_field, Line, {atom, Line, Name}, Expr}.
-
--spec args_to_cons(non_neg_integer(), [expr()]) -> {nil, line()} | {cons, line(), expr(), expr()}.
-args_to_cons(Line, List) ->
-    lists:foldr(fun({var, L, '_'}, Acc) ->
-                        %% Replace `_' variable to atom.
-                        {cons, Line, {atom, L, '_'}, Acc};
-                   (X, Acc) ->
-                        {cons, Line, X, Acc}
-                end,
-                {nil, Line},
-                List).

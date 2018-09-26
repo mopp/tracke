@@ -98,7 +98,6 @@ The result is the following:
 Reason: zero
 History:
     tracke_example:func1/1 at L39
-        Args: [0]
         Aux: undefined
 
 Your input is zero.
@@ -109,7 +108,6 @@ ok
 Reason: negative
 History:
     tracke_example:func1/1 at L41
-        Args: [-100]
         Aux: undefined
 
 Your input is negative.
@@ -120,10 +118,8 @@ ok
 Reason: boring_number
 History:
     tracke_example:fizzbuzz/1 at L60
-        Args: [127]
         Aux: undefined
     tracke_example:func1/1 at L47
-        Args: [127]
         Aux: undefined
 
 Your input is boring.

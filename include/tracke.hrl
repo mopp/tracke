@@ -1,7 +1,7 @@
 %% Export these records for dialyzer.
 -record(history, {module :: module(),
                   function :: atom(),
-                  args :: [term()],
+                  args :: non_neg_integer(),
                   line :: non_neg_integer(),
                   aux :: term()}).
 

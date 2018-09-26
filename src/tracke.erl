@@ -35,16 +35,12 @@ format(#tracke{reason = Reason0,
                                          line = Line,
                                          aux = Aux}, Acc) ->
                                     Formated = io_lib:format("~s~p:~p/~p at L~p~n"
-                                                             "~s~sArgs: ~p~n"
                                                              "~s~sAux: ~p~n",
                                                              [Indent,
                                                               Module,
                                                               Function,
-                                                              length(Args),
-                                                              Line,
-                                                              Indent,
-                                                              Indent,
                                                               Args,
+                                                              Line,
                                                               Indent,
                                                               Indent,
                                                               Aux]),

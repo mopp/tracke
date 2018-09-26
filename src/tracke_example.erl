@@ -109,7 +109,7 @@ deep_chain() ->
     ok.
 
 -spec deep_chain1(x) -> {error, tracke(bottom_reason)}.
-deep_chain1(X) ->
+deep_chain1(_) ->
     {error, tracke:new(bottom_reason)}.
 
 -spec deep_chain2(x, y) -> {error, tracke(bottom_reason)}.

@@ -7,37 +7,33 @@
 
 -type tracke(Reason) :: tracke:tracke(Reason).
 
--spec underscode_func(Reason, term()) -> tracke(Reason).
-underscode_func(Reason, _) ->
-    tracke:new(Reason).
-
 api_test_() ->
     {inparallel,
      [{"tracke:new/1 succeeds",
-       ?_assertEqual(tracke_new(for_test, {?MODULE, api_test_, [], ?LINE + 1, undefined}),
+       ?_assertEqual(tracke_new(for_test, {?MODULE, api_test_, 0, ?LINE + 1, undefined}),
                      tracke:new(for_test))},
       {"tracke:new/2 succeeds, aux is binary",
-       ?_assertEqual(tracke_new(for_test, {?MODULE, api_test_, [], ?LINE + 1, <<"Put here what the caller has to do">>}),
+       ?_assertEqual(tracke_new(for_test, {?MODULE, api_test_, 0, ?LINE + 1, <<"Put here what the caller has to do">>}),
                      tracke:new(for_test, <<"Put here what the caller has to do">>))},
       {"tracke:new/2 succeeds, aux is anonymous function",
-       ?_assertEqual(tracke_new(for_test, {?MODULE, api_test_, [], ?LINE + 1, hint}),
+       ?_assertEqual(tracke_new(for_test, {?MODULE, api_test_, 0, ?LINE + 1, hint}),
                      (fun(X) -> tracke:new(for_test, X) end)(hint))},
       {"tracke:chain/1 succeeds",
        fun() ->
                Tracke = tracke:new(for_test),
-               ?assertEqual(tracke_chain(Tracke, {?MODULE, api_test_, [], ?LINE + 1, undefined}),
+               ?assertEqual(tracke_chain(Tracke, {?MODULE, api_test_, 0, ?LINE + 1, undefined}),
                             tracke:chain(Tracke))
        end},
       {"tracke:chain/2 succeeds, aux is atom",
        fun() ->
                Tracke = tracke:new(for_test),
-               ?assertEqual(tracke_chain(Tracke, {?MODULE, api_test_, [], ?LINE + 1, hint}),
+               ?assertEqual(tracke_chain(Tracke, {?MODULE, api_test_, 0, ?LINE + 1, hint}),
                             tracke:chain(Tracke, hint))
        end},
       {"tracke:extend/2 succeeds",
        fun() ->
                Tracke = tracke:new(for_test),
-               ?assertEqual(tracke_extend(new_reason, Tracke, {?MODULE, api_test_, [], ?LINE + 1, undefined}),
+               ?assertEqual(tracke_extend(new_reason, Tracke, {?MODULE, api_test_, 0, ?LINE + 1, undefined}),
                             tracke:extend(new_reason, Tracke))
        end},
       {"tracke:reason/1 succeeds",
@@ -47,10 +43,7 @@ api_test_() ->
                              tracke:reason(Tracke))
        end},
       {"tracke:format/1",
-       ?_assert(is_binary(tracke:format(tracke:new(for_test))))},
-      {"`_' variable binding is converted to atom '_`",
-       ?_assertEqual(tracke_new(for_test, {?MODULE, underscode_func, [for_test, '_'], 12, undefined}),
-                     underscode_func(for_test, dummy))}]}.
+       ?_assert(is_binary(tracke:format(tracke:new(for_test))))}]}.
 
 -type history_components() :: {?MODULE, atom(), [term()], non_neg_integer(), term()}.
 
