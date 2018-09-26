@@ -10,7 +10,7 @@
 api_test_() ->
     {inparallel,
      [{"tracke:new/1 succeeds",
-       ?_assertEqual(tracke_new(for_test, {?MODULE, api_test_, 0, ?LINE + 1, undefined}),
+       ?_assertEqual(tracke_new(for_test, {?MODULE, api_test_, 0, ?LINE + 1, '_'}),
                      tracke:new(for_test))},
       {"tracke:new/2 succeeds, aux is binary",
        ?_assertEqual(tracke_new(for_test, {?MODULE, api_test_, 0, ?LINE + 1, <<"Put here what the caller has to do">>}),
@@ -21,7 +21,7 @@ api_test_() ->
       {"tracke:chain/1 succeeds",
        fun() ->
                Tracke = tracke:new(for_test),
-               ?assertEqual(tracke_chain(Tracke, {?MODULE, api_test_, 0, ?LINE + 1, undefined}),
+               ?assertEqual(tracke_chain(Tracke, {?MODULE, api_test_, 0, ?LINE + 1, '_'}),
                             tracke:chain(Tracke))
        end},
       {"tracke:chain/2 succeeds, aux is atom",
@@ -33,7 +33,7 @@ api_test_() ->
       {"tracke:extend/2 succeeds",
        fun() ->
                Tracke = tracke:new(for_test),
-               ?assertEqual(tracke_extend(new_reason, Tracke, {?MODULE, api_test_, 0, ?LINE + 1, undefined}),
+               ?assertEqual(tracke_extend(new_reason, Tracke, {?MODULE, api_test_, 0, ?LINE + 1, '_'}),
                             tracke:extend(new_reason, Tracke))
        end},
       {"tracke:reason/1 succeeds",

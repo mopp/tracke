@@ -31,7 +31,7 @@ parse_transform(Forms, _) ->
                         function => undefined,
                         args => undefined,
                         line => undefined,
-                        aux => undefined}).
+                        aux => '_'}).
 
 %%====================================================================
 %% Internal functions
@@ -137,8 +137,8 @@ make_history_record(#{module := Module,
                       line := Line,
                       aux := Aux0}) ->
     Aux = case Aux0 of
-              undefined ->
-                  {atom, Line, undefined};
+              '_' ->
+                  {atom, Line, '_'};
               _ ->
                   Aux0
           end,

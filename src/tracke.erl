@@ -34,17 +34,17 @@ format(#tracke{reason = Reason0,
                                          args = Args,
                                          line = Line,
                                          aux = Aux}, Acc) ->
-                                    Formated = io_lib:format("~s~p:~p/~p at L~p~n"
-                                                             "~s~sAux: ~p~n",
-                                                             [Indent,
-                                                              Module,
-                                                              Function,
-                                                              Args,
-                                                              Line,
-                                                              Indent,
-                                                              Indent,
-                                                              Aux]),
-                                    [list_to_binary(Formated) | Acc]
+
+                                    F0 = io_lib:format("~s~p:~p/~B at L~B~n", [Indent, Module, Function, Args, Line]),
+                                    F = case Aux of
+                                            '_' ->
+                                                F0;
+                                            _ ->
+                                                %% Append the aux if it is NOT default value (`_').
+                                                io_lib:format("~s~s~sAux: ~p~n", [F0, Indent, Indent, Aux])
+                                        end,
+
+                                    [list_to_binary(F) | Acc]
                             end,
                             [],
                             Histories0),

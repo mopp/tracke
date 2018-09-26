@@ -98,7 +98,6 @@ The result is the following:
 Reason: zero
 History:
     tracke_example:func1/1 at L39
-        Aux: undefined
 
 Your input is zero.
 ok
@@ -108,7 +107,6 @@ ok
 Reason: negative
 History:
     tracke_example:func1/1 at L41
-        Aux: undefined
 
 Your input is negative.
 ok
@@ -118,9 +116,7 @@ ok
 Reason: boring_number
 History:
     tracke_example:fizzbuzz/1 at L60
-        Aux: undefined
     tracke_example:func1/1 at L47
-        Aux: undefined
 
 Your input is boring.
 ok
@@ -129,4 +125,12 @@ ok
 4> tracke_example:normal_usage(15).
 Ok: <<"fizzbuzz">>
 ok
+
+5> tracke_example:deep_chain().
+Reason: bottom_reason
+History:
+    tracke_example:deep_chain1/1 at L113
+    tracke_example:deep_chain2/2 at L119
+        Aux: "hi"
+    tracke_example:deep_chain3/3 at L126
 ```
