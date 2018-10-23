@@ -53,6 +53,12 @@ format(#tracke{reason = Reason0,
 format(Reason, _) ->
     list_to_binary(io_lib:format("~p", [Reason])).
 
+-spec is_tracke(term()) -> boolean().
+is_tracke(#tracke{}) ->
+    true;
+is_tracke(_) ->
+    false.
+
 %%====================================================================
 %% Internal functions
 %%====================================================================

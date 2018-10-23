@@ -42,8 +42,12 @@ api_test_() ->
                ?_assertEqual(for_test,
                              tracke:reason(Tracke))
        end},
-      {"tracke:format/1",
-       ?_assert(is_binary(tracke:format(tracke:new(for_test))))}]}.
+      {"tracke:format/1 converts tracke() to binary()",
+       ?_assert(is_binary(tracke:format(tracke:new(for_test))))},
+      {"tracke:is_tracke/1 returns true if the argument is tracke()",
+       ?_assert(tracke:is_tracke(tracke:new(for_test)))},
+      {"tracke:is_tracke/1 returns false if the argument is NOT tracke()",
+       ?_assertNot(tracke:is_tracke(not_tracke))}]}.
 
 -type history_components() :: {?MODULE, atom(), [term()], non_neg_integer(), term()}.
 

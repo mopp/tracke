@@ -28,6 +28,9 @@ Trackable error library.
     * Return it without doing anythings if not `tracke` object is given.
 - `-spec tracke:format(tracke(Reason)) -> binary()`
     * Build human readable error reason and its history.
+- `-spec tracke:is_tracke(term()) -> boolean()`
+    * Return true if the argument is `tracke()`.
+    * Return false otherwise.
 
 ### Constrains
 - You can ONLY use a variable as the arugment of `tracke:chain/1`, `tracke:chain/1` and `tracke:reason/1`.
