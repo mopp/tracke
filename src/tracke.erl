@@ -6,7 +6,8 @@
 %% API
 %%====================================================================
 -export([format/1,
-         format/2]).
+         format/2,
+         is_tracke/1]).
 
 -export_type([tracke/1,
               format_options/0]).
