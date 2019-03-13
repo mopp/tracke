@@ -98,29 +98,19 @@ fizzbuzz(X) ->
 The result is the following:
 ```console
 1> tracke_example:normal_usage(0).
-Reason: zero
-History:
-    tracke_example:func1/1 at L39
-
+Reason: zero, History:tracke_example:func1/1 at L39
 Your input is zero.
 ok
 
 
 2> tracke_example:normal_usage(-100).
-Reason: negative
-History:
-    tracke_example:func1/1 at L41
-
+Reason: negative, History:tracke_example:func1/1 at L41
 Your input is negative.
 ok
 
 
 3> tracke_example:normal_usage(127).
-Reason: boring_number
-History:
-    tracke_example:fizzbuzz/1 at L60
-    tracke_example:func1/1 at L47
-
+Reason: boring_number, History:tracke_example:fizzbuzz/1 at L60 -> tracke_example:func1/1 at L47
 Your input is boring.
 ok
 
@@ -129,11 +119,7 @@ ok
 Ok: <<"fizzbuzz">>
 ok
 
-5> tracke_example:deep_chain().
-Reason: bottom_reason
-History:
-    tracke_example:deep_chain1/1 at L113
-    tracke_example:deep_chain2/2 at L119
-        Aux: "hi"
-    tracke_example:deep_chain3/3 at L126
+11> tracke_example:deep_chain().
+Reason: bottom_reason, History:tracke_example:deep_chain1/1 at L113 -> tracke_example:deep_chain2/2 at L119 (Aux: "hi") -> tracke_example:deep_chain3/3 at L126
+ok
 ```

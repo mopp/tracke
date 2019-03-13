@@ -6,7 +6,6 @@
 %% API
 %%====================================================================
 -export([format/1,
-         format/2,
          is_tracke/1]).
 
 -export_type([tracke/1,
@@ -23,26 +22,21 @@
 %% API functions
 %%====================================================================
 -spec format(tracke(term()) | term()) -> binary().
-format(Tracke) ->
-    format(Tracke, [{indent, 4}]).
-
--spec format(tracke(term()) | term(), format_options()) -> binary().
 format(#tracke{reason = Reason0,
-               histories = Histories0}, [{indent, N}]) ->
-    Indent = binary:copy(<<" ">>, N),
+               histories = Histories0}) ->
     Histories = lists:foldl(fun(#history{module = Module,
                                          function = Function,
                                          args = Args,
                                          line = Line,
-                                         aux = Aux}, Acc) ->
-
-                                    F0 = io_lib:format("~s~p:~p/~B at L~B~n", [Indent, Module, Function, Args, Line]),
+                                         aux = Aux},
+                                Acc) ->
+                                    F0 = io_lib:format("~p:~p/~B at L~B", [Module, Function, Args, Line]),
                                     F = case Aux of
                                             '_' ->
                                                 F0;
                                             _ ->
                                                 %% Append the aux if it is NOT default value (`_').
-                                                io_lib:format("~s~s~sAux: ~p~n", [F0, Indent, Indent, Aux])
+                                                io_lib:format("~s (Aux: ~p)", [F0, Aux])
                                         end,
 
                                     [list_to_binary(F) | Acc]
@@ -50,9 +44,7 @@ format(#tracke{reason = Reason0,
                             [],
                             Histories0),
     Reason = list_to_binary(io_lib:format("~p", [Reason0])),
-    join([<<"Reason: ">>, Reason, <<"\nHistory:\n">> | Histories]);
-format(Reason, _) ->
-    list_to_binary(io_lib:format("~p", [Reason])).
+    join([<<"Reason: ">>, Reason, <<", History:">>, join(Histories, <<" -> ">>)], <<"">>).
 
 -spec is_tracke(term()) -> boolean().
 is_tracke(#tracke{}) ->
@@ -63,8 +55,8 @@ is_tracke(_) ->
 %%====================================================================
 %% Internal functions
 %%====================================================================
--spec join([binary()]) -> binary().
-join([X | [Y | Rest]]) ->
-    join([<<X/binary, Y/binary>> | Rest]);
-join([X]) ->
+-spec join([binary()], binary()) -> binary().
+join([X | [Y | Rest]], Joint) ->
+    join([<<X/binary, Joint/binary, Y/binary>> | Rest], Joint);
+join([X], _) ->
     X.

@@ -104,7 +104,7 @@ error_func3() ->
 deep_chain() ->
     case deep_chain3(x, y, z) of
         {error, Reason} ->
-            io:format("~s", [tracke:format(Reason)])
+            io:format("~s~n", [tracke:format(Reason)])
     end,
     ok.
 
